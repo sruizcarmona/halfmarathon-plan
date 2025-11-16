@@ -1,0 +1,226 @@
+{
+  "meta": {
+    "race_date": "2026-01-18",
+    "start_date": "2025-11-16",
+    "weeks": 9,
+    "notes": "3 runs/week (Tue/Fri/Sun), gym on Wed. Speeds in min/km. LocalStorage used for progress."
+  },
+  "weeks": [
+    {
+      "idx": 1,
+      "title": "Week 1 - Base / Injury Protection",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Easy Run",
+          "dist": "8-10 km",
+          "pace": "4:50-5:05"
+        },
+        {
+          "day": "Fri",
+          "type": "Steady Run",
+          "dist": "6-7 km",
+          "pace": "4:40-4:50"
+        },
+        {
+          "day": "Sun",
+          "type": "Long Run",
+          "dist": "12 km",
+          "pace": "4:50-5:10"
+        }
+      ]
+    },
+    {
+      "idx": 2,
+      "title": "Week 2",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Aerobic",
+          "dist": "9-10 km",
+          "pace": "4:45-5:00"
+        },
+        {
+          "day": "Fri",
+          "type": "Progression",
+          "dist": "6 km",
+          "pace": "start 4:55 -> finish 4:35"
+        },
+        {
+          "day": "Sun",
+          "type": "Long",
+          "dist": "13-14 km",
+          "pace": "4:55-5:10"
+        }
+      ]
+    },
+    {
+      "idx": 3,
+      "title": "Week 3 - Strength + Tempo Intro",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Aerobic",
+          "dist": "10 km",
+          "pace": "4:45"
+        },
+        {
+          "day": "Fri",
+          "type": "Tempo Intro",
+          "dist": "7 km total",
+          "pace": "2 km w/u, 3 km @4:30-4:35, 2 km cd"
+        },
+        {
+          "day": "Sun",
+          "type": "Long",
+          "dist": "14-15 km",
+          "pace": "4:50-5:10"
+        }
+      ]
+    },
+    {
+      "idx": 4,
+      "title": "Week 4 - Sub-threshold Intervals",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Intervals",
+          "dist": "6 x 1 km",
+          "pace": "4:25-4:30, 2 min rest"
+        },
+        {
+          "day": "Fri",
+          "type": "Steady + finish fast",
+          "dist": "7-8 km",
+          "pace": "4:45 -> last 2 km ~4:30"
+        },
+        {
+          "day": "Sun",
+          "type": "Long",
+          "dist": "15-16 km",
+          "pace": "4:50-5:05"
+        }
+      ]
+    },
+    {
+      "idx": 5,
+      "title": "Week 5 - Race-pace Intro",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Race-pace blocks",
+          "dist": "3 x 2 km",
+          "pace": "4:15-4:20, 3 min jog between"
+        },
+        {
+          "day": "Fri",
+          "type": "Aerobic",
+          "dist": "7-8 km",
+          "pace": "4:45-4:55"
+        },
+        {
+          "day": "Sun",
+          "type": "Long (fast finish)",
+          "dist": "14-16 km",
+          "pace": "last 3 km @4:25-4:30"
+        }
+      ]
+    },
+    {
+      "idx": 6,
+      "title": "Week 6 - Peak Speed Endurance (introduce sub-4)",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "VO2max / Sub-4 intro",
+          "dist": "5 x 1 km",
+          "pace": "3:55 (target), rest 2:30"
+        },
+        {
+          "day": "Fri",
+          "type": "Easy",
+          "dist": "7 km",
+          "pace": "4:55-5:00"
+        },
+        {
+          "day": "Sun",
+          "type": "Long",
+          "dist": "17-18 km",
+          "pace": "4:45-4:55"
+        }
+      ]
+    },
+    {
+      "idx": 7,
+      "title": "Week 7 - Hardest Week",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Race-pace long block",
+          "dist": "8 km",
+          "pace": "4:15-4:20"
+        },
+        {
+          "day": "Fri",
+          "type": "Steady",
+          "dist": "8 km",
+          "pace": "4:40-4:50"
+        },
+        {
+          "day": "Sun",
+          "type": "Long with RP finish",
+          "dist": "17 km",
+          "pace": "last 5 km @4:20-4:25"
+        }
+      ]
+    },
+    {
+      "idx": 8,
+      "title": "Week 8 - Taper begins + Speed",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Speed Session",
+          "dist": "8 x 400 m",
+          "pace": "3:35-3:45/km efforts, rec 1:00"
+        },
+        {
+          "day": "Fri",
+          "type": "Short tempo",
+          "dist": "5 km",
+          "pace": "4:20-4:30"
+        },
+        {
+          "day": "Sun",
+          "type": "Long (short)",
+          "dist": "14 km",
+          "pace": "4:50-5:05"
+        }
+      ]
+    },
+    {
+      "idx": 9,
+      "title": "Week 9 - Race Week",
+      "sessions": [
+        {
+          "day": "Tue",
+          "type": "Easy + strides",
+          "dist": "5 km + 3x200m strides",
+          "pace": "easy"
+        },
+        {
+          "day": "Fri",
+          "type": "Easy",
+          "dist": "3 km",
+          "pace": "easy"
+        },
+        {
+          "day": "Sun",
+          "type": "Race Day",
+          "dist": "21.097 km",
+          "pace": "race"
+        }
+      ]
+    }
+  ]
+}
