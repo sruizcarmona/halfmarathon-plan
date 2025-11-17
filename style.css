@@ -1,28 +1,141 @@
-:root{
-  --bg:#f6f6f8;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent1:#ff7a00; /* orange */
-  --accent2:#19a974; /* green */
-  --shadow: 0 6px 18px rgba(15,23,42,0.06);
+:root {
+  --bg: #f6f6f8;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent1: #ff7a00;
+  /* orange */
+  --accent2: #19a974;
+  /* green */
+  --shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
-*{box-sizing:border-box}
-body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#0f172a;margin:0}
-.container{max-width:920px;margin:20px auto;padding:0 16px}
-.site-header{background:linear-gradient(90deg,rgba(255,122,0,0.08),rgba(25,169,116,0.04));padding:18px 0;border-radius:10px}
-.site-header h1{margin:0 0 6px;font-size:20px}
-.sub{color:var(--muted);margin:0}
-.stats{display:flex;gap:16px;color:var(--muted);margin-top:8px}
-.plan-holder{display:flex;gap:14px;overflow-x:auto;padding:18px 4px}
-.week-card{min-width:300px;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);flex:0 0 auto}
-.week-card h3{margin:0 0 8px}
-.session{padding:8px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg,rgba(15,23,42,0.01),transparent)}
-.session .meta{display:flex;justify-content:space-between;align-items:center}
-.session p{margin:6px 0 0;color:var(--muted);font-size:13px}
-.controls{margin-top:8px;display:flex;gap:8px;align-items:center}
-.btn{padding:6px 10px;border-radius:8px;border:0;background:var(--accent1);color:white;font-weight:600;cursor:pointer}
-.checkbox{transform:scale(1.1)}
-.today-marker{border-left:4px solid var(--accent2);padding-left:10px}
-.small{font-size:12px;color:var(--muted)}
-.field{display:flex;gap:8px;align-items:center}
-.input{padding:6px 8px;border-radius:6px;border:1px solid #e6e9ef;font-size:13px}
+
+* {
+  box-sizing: border-box
+}
+
+body {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: #0f172a;
+  margin: 0
+}
+
+.container {
+  max-width: 920px;
+  margin: 20px auto;
+  padding: 0 16px
+}
+
+.site-header {
+  background: linear-gradient(90deg, rgba(255, 122, 0, 0.08), rgba(25, 169, 116, 0.04));
+  padding: 18px 0;
+  border-radius: 10px
+}
+
+.site-header h1 {
+  margin: 0 0 6px;
+  font-size: 20px
+}
+
+.sub {
+  color: var(--muted);
+  margin: 0
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+  color: var(--muted);
+  margin-top: 8px
+}
+
+.plan-holder {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 18px 4px
+}
+
+.week-card {
+  min-width: 300px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  flex: 0 0 auto
+}
+
+.week-card h3 {
+  margin: 0 0 8px
+}
+
+.session {
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.01), transparent)
+}
+
+.session .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.session p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px
+}
+
+.controls {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center
+}
+
+.btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--accent1);
+  color: white;
+  font-weight: 600;
+  cursor: pointer
+}
+
+.checkbox {
+  transform: scale(1.1)
+}
+
+.today-marker {
+  border-left: 4px solid var(--accent2);
+  padding-left: 10px
+}
+
+.small {
+  font-size: 12px;
+  color: var(--muted)
+}
+
+.field {
+  display: flex;
+  gap: 8px;
+  align-items: center
+}
+
+.input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e6e9ef;
+  font-size: 13px
+}
+
+.month-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
