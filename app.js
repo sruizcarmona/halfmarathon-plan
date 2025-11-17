@@ -1,291 +1,203 @@
-// app.js — Fixed, robust, full version
-// Works with your plan.json (weeks with "idx" and "sessions" arrays)
+// app.js — full clean updated version with vertical months, current week highlight, wider cards
 
 // --- CONFIG ---
-const PLAN_START = new Date("2025-11-17"); // Monday of week 1 (adjust if you want)
-const RACE_DATE  = new Date("2026-01-18");
-const STORAGE_KEY = 'hm_plan_progress_v1';
-const MS_DAY = 24 * 3600 * 1000;
+const RACE_DAY = new Date("2026-01-18");
+const START_DAY = new Date("2025-11-17"); // Adjust if needed
+const STORAGE_KEY = 'hm_plan_progress_v2';
+const MS_DAY = 24 * 60 * 60 * 1000;
 const MS_WEEK = 7 * MS_DAY;
 
 // --- UTILS ---
-function fmtShort(d){
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); // "18 Nov"
+function formatDate(date) {
+  return date.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" });
 }
-function fmtFull(d){
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }); // "Tue, 18 Nov"
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch(e) { return {}; }
 }
-function safeNumber(v, fallback = 0){
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
+function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+function sessionId(weekIdx, sessIdx) { return `w${weekIdx}_s${sessIdx}`; }
 
-// day name -> index where Monday=0
-const DAY_INDEX = {
-  mon:0, monday:0,
-  tue:1, tuesday:1,
-  wed:2, wednesday:2,
-  thu:3, thursday:3,
-  fri:4, friday:4,
-  sat:5, saturday:5,
-  sun:6, sunday:6
-};
-
-// --- STATE FOR MONTH NAV ---
-let monthGroups = {};   // { "Nov 2025": [weekObj,...], ... }
-let monthKeys = [];     // ordered keys
-let currentMonthIndex = 0;
-
-// --- LOCALSTORAGE helpers ---
-function loadProgress(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e){ return {}; } }
-function saveProgress(p){ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
-function sessionId(weekIdx, sessIdx){ return `w${weekIdx}_s${sessIdx}`; }
-
-// --- Build monthGroups from plan ---
-async function loadPlan(){
-  const res = await fetch('plan.json');
-  if(!res.ok) throw new Error('fetch plan.json failed');
-  const plan = await res.json();
-
-  // Reset
-  monthGroups = {};
-
-  // Iterate weeks — plan.weeks is expected to be an array
-  plan.weeks.forEach((w, i) => {
-    // weekIndex: prefer w.idx or fallback to i+1
-    const weekIndex = safeNumber(w.idx, i+1);
-
-    // compute weekStart (Monday)
-    const weekStart = new Date(PLAN_START.getTime() + (weekIndex - 1) * MS_WEEK);
-
-    // month key like "November 2025"
-    const monthKey = weekStart.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-
-    // store week plus computed metadata for convenience
-    const weekCopy = Object.assign({}, w, { _weekIndex: weekIndex, _weekStartMs: weekStart.getTime() });
-
-    if(!monthGroups[monthKey]) monthGroups[monthKey] = [];
-    monthGroups[monthKey].push(weekCopy);
+// --- MAIN ---
+document.addEventListener("DOMContentLoaded", () => {
+  loadPlan().catch(err => {
+    console.error("Failed to load plan.json", err);
+    const holder = document.getElementById("plan-holder");
+    holder.innerHTML = '<div class="week-card"><p>Failed to load plan.json — make sure it is present.</p></div>';
   });
+});
 
-  // sort monthKeys chronologically
-  monthKeys = Object.keys(monthGroups).sort((a,b)=>{
-    // parse first week start of each month for ordering
-    const aDate = new Date(monthGroups[a][0]._weekStartMs);
-    const bDate = new Date(monthGroups[b][0]._weekStartMs);
-    return aDate - bDate;
-  });
+// --- LOAD PLAN ---
+async function loadPlan() {
+  const response = await fetch("plan.json");
+  const plan = await response.json();
+  renderWeeks(plan);
+}
 
-  // ensure currentMonthIndex points to the first month that contains the current date (if any)
+// --- RENDER WEEKS ---
+function renderWeeks(plan) {
+  const holder = document.getElementById("plan-holder");
+  holder.innerHTML = '';
+
+  // populate header date spans from constants (accept multiple id variants)
+  const raceEl = document.getElementById('race-date');
+  if (raceEl) raceEl.textContent = formatDate(RACE_DAY);
+  const startEl = document.getElementById('start-date');
+  if (startEl) startEl.textContent = formatDate(START_DAY);
+
+  const totalWeeks = plan.weeks.length;
   const now = new Date();
-  let foundIndex = monthKeys.findIndex(key => {
-    const firstWeekStart = new Date(monthGroups[key][0]._weekStartMs);
-    const lastWeek = monthGroups[key][monthGroups[key].length - 1];
-    const lastWeekEnd = new Date(lastWeek._weekStartMs + (6 * MS_DAY));
-    return now >= firstWeekStart && now <= lastWeekEnd;
-  });
-  if(foundIndex >= 0) currentMonthIndex = foundIndex;
-  else currentMonthIndex = 0;
 
-  renderMonth(monthKeys[currentMonthIndex]);
-}
+  let currentMonth = '';
+  const totalSessions = plan.weeks.reduce((sum, wk) => {
+    if (Array.isArray(wk)) return sum + wk.length;
+    if (wk && Array.isArray(wk.sessions)) return sum + wk.sessions.length;
+    return sum;
+  }, 0);
+  
+  for (let i = 0; i < totalWeeks; i++) {
+    const weekNumber = i + 1;
+    const weekStartDate = new Date(START_DAY.getTime() + i * MS_WEEK);
+    const weekEndDate = new Date(weekStartDate.getTime() + 6 * MS_DAY);
 
-// --- Render one month (replace plan-holder contents) ---
-function renderMonth(monthKey){
-  const holder = document.getElementById('plan-holder');
-  holder.innerHTML = ''; // clear
+    // Month header
+    const monthName = weekStartDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    if (monthName !== currentMonth) {
+        // create month wrapper
+        const monthWrapper = document.createElement('div');
+        monthWrapper.className = 'month-wrapper';
+        
+        const monthHeader = document.createElement('h2');
+        monthHeader.textContent = monthName;
+        monthWrapper.appendChild(monthHeader);
 
-  // safety
-  if(!monthKey || !monthGroups[monthKey]) {
-    document.getElementById('month-name').textContent = monthKey || '—';
-    holder.innerHTML = '<div class="week-card"><p>No weeks found for this month.</p></div>';
-    updateStats(); // still refresh stats
-    return;
-  }
+        const weekContainer = document.createElement('div');
+        weekContainer.className = 'week-container';
+        monthWrapper.appendChild(weekContainer);
 
-  document.getElementById('month-name').textContent = monthKey;
+        holder.appendChild(monthWrapper);
+        currentMonth = monthName;
+    }
 
-  const progress = loadProgress();
-  let totalSessions = 0;
+    const monthWrapper = holder.querySelector('.month-wrapper:last-child');
+    const weekContainer = monthWrapper.querySelector('.week-container');
 
-  monthGroups[monthKey].forEach((week) => {
-    const weekIndex = safeNumber(week._weekIndex, 1);
-    const weekStart = new Date(week._weekStartMs);
-    const weekEnd = new Date(week._weekStartMs + 6 * MS_DAY);
-    const weeksToGoRaw = (RACE_DATE - weekStart) / MS_WEEK;
-    const weeksToGo = Math.max(0, Math.ceil(weeksToGoRaw));
+    const weeksToGo = Math.max(0, Math.ceil((RACE_DAY - weekStartDate)/MS_WEEK));
 
-    // Build card
     const card = document.createElement('div');
     card.className = 'week-card';
+    card.style.padding = '16px';
+    card.style.marginBottom = '16px';
+    card.style.borderRadius = '8px';
+    card.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+    card.style.background = (now >= weekStartDate && now <= weekEndDate) ? 'rgba(0,200,0,0.12)' : 'white';
 
-    // header
-    const header = document.createElement('div');
-    header.className = 'week-header';
-    header.innerHTML = `
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">
-        <div>
-          <h3 style="margin:0;color:var(--accent2)">${weeksToGo} weeks to go</h3>
-          <div style="color:var(--muted);font-size:14px;margin-top:4px">Week ${weekIndex} · ${fmtShort(weekStart)} – ${fmtShort(weekEnd)}</div>
+    const title = `<h3 style="margin:0;">${weeksToGo} ${weeksToGo === 1 ? 'week' : 'weeks'} to go</h3>`;
+    const subtitle = `<div style="font-size:14px;color:#555;">Week ${weekNumber} · ${formatDate(weekStartDate)} – ${formatDate(weekEndDate)}</div>`;
+
+    let daysHtml = '';
+    (plan.weeks[i].sessions || []).forEach((s, si) => {
+      const sid = sessionId(weekNumber, si);
+      const sessProg = loadProgress()[sid] || {};
+      
+      const dayIndex = {"mon":0,"tue":1,"wed":2,"thu":3,"fri":4,"sat":5,"sun":6}[s.day.toLowerCase().slice(0,3)] ?? 1;
+      const sessionDate = new Date(weekStartDate.getTime() + dayIndex*MS_DAY);
+
+      daysHtml += `<div class="day-item" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;">
+        <div class="day-info">
+          <strong>${s.day}</strong> — ${formatDate(sessionDate)}<br>
+          <span style="font-size:13px;color:#555;">${s.type}: ${s.dist || ''} <br> Pace: ${s.pace || ''}</span>
         </div>
-        <div style="text-align:right" class="small">Start: ${fmtShort(weekStart)}</div>
-      </div>
-    `;
-    card.appendChild(header);
-
-    // sessions list
-    (week.sessions || []).forEach((s, si) => {
-      totalSessions += 1;
-      const sid = sessionId(weekIndex, si);
-
-      const sess = document.createElement('div');
-      sess.className = 'session';
-      // compute session date: find day index from s.day (e.g. "Tue")
-      const dayKey = String((s.day||'').toLowerCase()).slice(0,3); // 'tue' etc
-      const dayIndex = DAY_INDEX[dayKey] ?? DAY_INDEX[(s.day||'').toLowerCase()] ?? 1; // default Tue->1
-      const sessionDate = new Date(week._weekStartMs + dayIndex * MS_DAY);
-
-      // progress values
-      const p = progress[sid] || {};
-
-      // build inner HTML w/ inputs
-      sess.innerHTML = `
-        <div class="meta" style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <strong>${s.day}</strong> — <span class="small">${fmtFull(sessionDate)}</span>
-            <div class="small" style="margin-top:6px">${s.type} · ${s.dist || ''} · Pace: ${s.pace || ''}</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-            <label style="display:flex;align-items:center;gap:6px;">
-              <input type="checkbox" class="checkbox" ${p.done ? 'checked' : ''}>
-              <span class="small">Done</span>
-            </label>
-            <div style="display:flex;gap:6px">
-              <input class="input" placeholder="km" style="width:64px" value="${p.distance ? p.distance : ''}">
-              <input class="input" placeholder="min/km" style="width:84px" value="${p.pace ? p.pace : ''}">
-            </div>
-          </div>
+        <div class="day-progress" style="display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" class="checkbox" ${sessProg.done ? 'checked' : ''}>
+            <input class='input' placeholder='km' style='width:50px;' value='${sessProg.distance||''}'>
+            <input class='input' placeholder='min/km' style='width:70px;' value='${sessProg.pace||''}'>
         </div>
-      `;
+      </div>`;
+    });
+        
+    card.innerHTML = title + subtitle + `<div class='day-list'>${daysHtml}</div>`;
+    weekContainer.appendChild(card);
 
-      // attach listeners for this session
-      const checkbox = sess.querySelector('.checkbox');
-      const distInput = sess.querySelectorAll('.input')[0];
-      const paceInput = sess.querySelectorAll('.input')[1];
+    // Add listeners for checkboxes and inputs
+    const dayItems = card.querySelectorAll('.day-item');
+    dayItems.forEach((elem, si) => {
+        const checkbox = elem.querySelector('.checkbox');
+        const inputs = elem.querySelectorAll('.input');
+        const sid = sessionId(weekNumber, si);
+        const prog = loadProgress()[sid] || {};
 
-      checkbox.addEventListener('change', () => {
-        const prog = loadProgress();
-        prog[sid] = prog[sid] || {};
-        prog[sid].done = checkbox.checked;
-        saveProgress(prog);
-        updateStats(); // recalc totals
-      });
-      distInput.addEventListener('input', () => {
-        const prog = loadProgress();
-        prog[sid] = prog[sid] || {};
-        prog[sid].distance = distInput.value;
-        saveProgress(prog);
-        updateStats();
-      });
-      paceInput.addEventListener('input', () => {
-        const prog = loadProgress();
-        prog[sid] = prog[sid] || {};
-        prog[sid].pace = paceInput.value;
-        saveProgress(prog);
-      });
+        // set initial values from localStorage
+        checkbox.checked = prog.done || false;
+        inputs[0].value = prog.distance || '';
+        inputs[1].value = prog.pace || '';
 
-      // today marker: highlight if now falls in this week
-      const now = new Date();
-      if(now >= weekStart && now <= weekEnd) {
-        sess.classList.add('today-marker');
-      }
+        // Checkbox listener
+        checkbox.addEventListener('change', () => {
+            const p = loadProgress();
+            p[sid] = p[sid] || {};
+            p[sid].done = checkbox.checked;
+            saveProgress(p);
+            updateStats();
+        });
 
-      card.appendChild(sess);
+        // Distance input listener
+        inputs[0].addEventListener('input', () => {
+            const p = loadProgress();
+            p[sid] = p[sid] || {};
+            p[sid].distance = inputs[0].value;
+            saveProgress(p);
+            updateStats();
+        });
+
+        // Pace input listener
+        inputs[1].addEventListener('input', () => {
+            const p = loadProgress();
+            p[sid] = p[sid] || {};
+            p[sid].pace = inputs[1].value;
+            saveProgress(p);
+            updateStats();
+        });
     });
 
-    holder.appendChild(card);
-  });
-
-  updateStats();
-}
-
-// --- Stats (global across all months) ---
-function updateStats(){
-  const progress = loadProgress();
-  const allKeys = Object.keys(progress);
-  const completed = allKeys.filter(k => progress[k] && progress[k].done).length;
-
-  // sum distances
-  let sum = 0;
-  allKeys.forEach(k => {
-    const v = progress[k] && progress[k].distance;
-    if(v !== undefined && v !== null && v !== '') {
-      const n = parseFloat(String(v).replace(',','.'));
-      if(!Number.isNaN(n)) sum += n;
-    }
-  });
-
-  // total sessions: count from plan (safe)
-  let total = 0;
-  Object.values(monthGroups).forEach(arr => {
-    arr.forEach(w => total += (w.sessions || []).length);
-  });
-
-  const completedEl = document.getElementById('completed-count');
-  const totalEl = document.getElementById('total-sessions');
-  const sumEl = document.getElementById('distance-sum');
-
-  if(completedEl) completedEl.textContent = completed;
-  if(totalEl) totalEl.textContent = total;
-  if(sumEl) sumEl.textContent = sum ? (sum.toFixed(1) + ' km') : '—';
-}
-
-// --- Navigation setup (expects #prev-month, #next-month, #month-name in DOM) ---
-function setupNavigation(){
-  const prev = document.getElementById('prev-month');
-  const next = document.getElementById('next-month');
-
-  // If nav doesn't exist in the HTML, create it just above #plan-holder
-  if(!prev || !next){
-    const container = document.querySelector('main .container') || document.body;
-    const nav = document.createElement('div');
-    nav.id = 'month-nav';
-    nav.style.display = 'flex';
-    nav.style.justifyContent = 'center';
-    nav.style.gap = '12px';
-    nav.style.marginBottom = '12px';
-
-    const pbtn = document.createElement('button'); pbtn.id = 'prev-month'; pbtn.textContent = '◀';
-    const span = document.createElement('span'); span.id = 'month-name'; span.style.fontWeight = '600';
-    const nbtn = document.createElement('button'); nbtn.id = 'next-month'; nbtn.textContent = '▶';
-
-    nav.appendChild(pbtn); nav.appendChild(span); nav.appendChild(nbtn);
-    const planHolder = document.getElementById('plan-holder');
-    container.insertBefore(nav, planHolder);
+    // per-week work done above
   }
 
-  // now attach listeners (elements should exist)
-  const p = document.getElementById('prev-month');
-  const nx = document.getElementById('next-month');
+  // helpers moved out of the per-week loop: compute completed count
+  function completedOffset(progressObj){
+    if(!progressObj || typeof progressObj !== 'object') return 0;
+    return Object.values(progressObj).filter(p => p && p.done).length;
+  }
 
-  p.addEventListener('click', () => {
-    if(currentMonthIndex > 0){
-      currentMonthIndex--;
-      renderMonth(monthKeys[currentMonthIndex]);
-    }
-  });
-  nx.addEventListener('click', () => {
-    if(currentMonthIndex < monthKeys.length - 1){
-      currentMonthIndex++;
-      renderMonth(monthKeys[currentMonthIndex]);
-    }
-  });
+  // recompute and render global stats for the whole plan
+  function updateStats(){
+    const progress = loadProgress();
+
+    // 1) total sessions: use the precomputed `totalSessions` for the plan
+    const total = totalSessions;
+
+    // 2) completed sessions: count keys in progress where done===true
+    const completed = completedOffset(progress);
+
+    // 3) distance sum
+    let sum = 0;
+    Object.values(progress).forEach(p => {
+      if(p && p.distance != null && p.distance !== '') {
+        const n = parseFloat(String(p.distance).replace(',', '.'));
+        if(!Number.isNaN(n)) sum += n;
+      }
+    });
+
+    // 4) write to DOM safely (check elements exist)
+    const completedEl = document.getElementById('completed-count');
+    const totalEl     = document.getElementById('total-sessions');
+    const sumEl       = document.getElementById('distance-sum');
+
+    if(completedEl) completedEl.textContent = String(completed);
+    if(totalEl)     totalEl.textContent = String(total);
+    if(sumEl)       sumEl.textContent = sum ? (sum.toFixed(1) + ' km') : '—';
+  }
+
+  // initial render of stats
+  updateStats();
 }
-
-// --- INIT ---
-setupNavigation();
-loadPlan().catch(err => {
-  console.error('Failed to load plan.json', err);
-  const holder = document.getElementById('plan-holder');
-  if(holder) holder.innerHTML = '<div class="week-card"><p>Failed to load plan.json — make sure it is present.</p></div>';
-});

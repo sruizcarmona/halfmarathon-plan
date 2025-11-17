@@ -51,22 +51,69 @@ body {
 
 .plan-holder {
   display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  padding: 18px 4px
+  flex-direction: column;
+  gap: 16px;
+  overflow-x: visible;
+  /* padding: 18px 4px */
 }
 
-.week-card {
+/* .week-card {
   min-width: 300px;
   background: var(--card);
   border-radius: 12px;
   padding: 14px;
   box-shadow: var(--shadow);
   flex: 0 0 auto
+} */
+
+.week-card {
+  flex: 0 0 auto;
+  min-width: 300px;  /* narrower */
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  background: white;
 }
 
 .week-card h3 {
   margin: 0 0 8px
+}
+
+.day-list {
+  display: flex;
+  flex-direction: column;  /* Each day below the previous */
+  gap: 8px;
+}
+
+.month-wrapper {
+  margin-bottom: 24px;
+}
+
+.week-container {
+  display: flex;
+  flex-direction: row;    /* horizontal scrolling row */
+  gap: 16px;
+  overflow-x: auto;       /* allow horizontal scroll if too wide */
+  padding-bottom: 8px;
+}
+
+.day-item {
+  display: flex;
+  flex-direction: column; /* info above, progress below */
+  gap: 4px;
+  border-bottom: 1px solid #eee;
+  padding: 6px;
+}
+
+.day-info {
+  font-size: 14px;
+}
+
+.day-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 
 .session {
